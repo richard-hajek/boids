@@ -17,13 +17,15 @@ W_COH = 1                       # The cohesion coefficient
 
 DESIRED_SEP = 25                # The desired distance between the boids
 
-NEIGHBOUR_DIST = 50             #
+NEIGHBOUR_DIST = 50             # The maximum distance for finding neighbors
 
-STARTING_DISPERSION = 200       #
+STARTING_DISPERSION = 200       # The size of the spawn field
 
 ENABLE_INTERACTIVITY = True     # Whether the boids should interact with one another
 
 NEIGHBOURS_CACHE_LIFE = 10      #
+
+FIELD_OF_VIEW = 360             # The field of view of our boids, in degrees (0-360)
 
 DEBUG = False
 
@@ -67,14 +69,14 @@ class Boid:
     
     Methods :
       - tick : compute the Boid's new parameters after one time tick
-      - find_around : 
-      - flock :
-      - separate :
-      - align :
-      - cohesion :
-      - seek :
-      - update :
-      - borders :
+      - find_around : Updates the list of neighbours
+      - flock : Computes the resulting vector from all behaviours
+      - separate : Computes the resulting vector from the "separate" behaviour
+      - align : Computes the resulting vector from the "align" behaviour
+      - cohesion : Computes the resulting vector from the "cohesion" behaviour
+      - seek : Computes the resulting vector when seeking a target
+      - update : Computes the new position/velocity based on position/velocity/acceleration
+      - borders : If the boid crosses the border, put him on the other side
       - render :
     """
     
@@ -107,7 +109,10 @@ class Boid:
         for b in boids:
             d = np.linalg.norm(b.position - self.position)
             if d > 0 and d < NEIGHBOUR_DIST:
-                yield b
+                # The boid is inside the right distance range
+                if angle_between(self.velocity, b.position-self.position)*180/np.pi < FIELD_OF_VIEW/2 :
+                    # The boid is inside the field of view
+                    yield b
     
     
     def flock(self, boids):
