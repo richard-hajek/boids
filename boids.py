@@ -3,56 +3,80 @@ import bpy
 
 boids = []
 
-BOIDS = 50
+BOIDS = 50                      # Number of boids
 
-DIMENSIONS = 2
-MAX_SPEED = 2
-MAX_FORCE = 0.1
+DIMENSIONS = 2                  # Number of dimensions (either 2 or 3)
+MAX_SPEED = 2                   # Maximum speed of our boids
+MAX_FORCE = 0.1                 # Maximum forces our boids can experience
 
-BORDER = 200
+BORDER = 200                    # Size of the simulation field
 
-W_SEP = 1.5
-W_ALI = 1.1 
-W_COH = 1
+W_SEP = 1.5                     # The separation coefficient
+W_ALI = 1.1                     # The alignment coefficient
+W_COH = 1                       # The cohesion coefficient
 
-DESIRED_SEP = 25
+DESIRED_SEP = 25                # The desired distance between the boids
 
-NEIGHBOUR_DIST = 50
+NEIGHBOUR_DIST = 50             #
 
-STARTING_DISPERSION = 200
+STARTING_DISPERSION = 200       #
 
-ENABLE_INTERACTIVITY = True
+ENABLE_INTERACTIVITY = True     # Whether the boids should interact with one another
 
-NEIGHBOURS_CACHE_LIFE = 10
+NEIGHBOURS_CACHE_LIFE = 10      #
 
 DEBUG = False
 
-def unit_vector(vector):
-    return vector / np.linalg.norm(vector)
 
 def angle_between(v1, v2):
-    
+    """
+    Computes the angle between two vectors.
+    """
     if not np.any(v1) or not np.any(v2):
         return 0
     
-    v1_u = unit_vector(v1)
-    v2_u = unit_vector(v2)
+    v1_u = normalize(v1)
+    v2_u = normalize(v2)
     return np.arccos(np.dot(v1_u, v2_u))
 
+
 def normalize(v):
+    """
+    Normalizes the given vector so that it has a norm of 1
+    """
     norm = np.linalg.norm(v)
     if norm == 0: 
        return v
     return v / norm
 
+
 def limit(v, len):
-    
+    """
+    Caps the vector so that its norm does not exceed len
+    """
     if np.linalg.norm(v) > len:
         v = len * normalize(v)
     
     return v
 
+
 class Boid:
+    """
+    An object that will represent our Boid.
+    It is defined by its position, acceleration, radius, angle, and velocity.
+    
+    Methods :
+      - tick : compute the Boid's new parameters after one time tick
+      - find_around : 
+      - flock :
+      - separate :
+      - align :
+      - cohesion :
+      - seek :
+      - update :
+      - borders :
+      - render :
+    """
     
     def __init__(self, parent):
         self.parent = parent
@@ -104,6 +128,7 @@ class Boid:
         
         self.acceleration += sep + ali + coh
     
+    
     def separate(self, boids):
         steer = np.zeros(DIMENSIONS)
         count = 0
@@ -126,6 +151,7 @@ class Boid:
         
         return steer
     
+    
     def align(self, boids):
         sum = np.zeros(DIMENSIONS)
         count = 0
@@ -144,6 +170,7 @@ class Boid:
         
         return np.zeros(DIMENSIONS)
   
+  
     def cohesion(self, boids):
         sum = 0
         count = 0
@@ -159,6 +186,7 @@ class Boid:
             return self.seek(sum)
         
         return np.zeros(DIMENSIONS)
+    
     
     def seek(self, target):
         desired = target - self.position
@@ -177,6 +205,7 @@ class Boid:
         self.position += self.velocity
         self.acceleration *= 0
     
+    
     def borders(self):
         for i in range(DIMENSIONS):
             if self.position[i] > BORDER or self.position[i] < -BORDER:
@@ -187,32 +216,53 @@ class Boid:
         self.parent.location = self.position[0], self.position[1], 0
         self.parent.rotation_euler[2] = angle_between(self.velocity,  [1, 0])
 
+
+
 def globalTick(scene):
+    """
+    Calls tick() for every boid on scene.
+    """
     for b in boids:
         b.tick(boids)
 
+
 def register():
+    """
+    Calls globalTick every frame of the simulation.
+    """
     bpy.app.handlers.frame_change_post.append(globalTick)
 
+
 def unregister():
+    """
+    Stops calling globalTick every frame.
+    """
     bpy.app.handlers.frame_change_post.remove(globalTick)
 
+
 def reload():
+    """
+    
+    """
     path = bpy.data.filepath
     bpy.ops.wm.save_mainfile()
     bpy.ops.wm.open_mainfile(filepath=path)
 
+
+# Remove all objects from scene
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete() 
 
 for i in range(BOIDS):  
+    # Create a conical object to visualize our Boid
     #bpy.ops.mesh.primitive_cube_add(size=2, enter_editmode=False, align='WORLD', location=(0, 0, 0))
     bpy.ops.mesh.primitive_cone_add(location=(0.0,0.0,0.0), enter_editmode=False, align='WORLD', radius1=3, depth=12, radius2=0.1, rotation=(0,3.1415/2,0))
 
-
+# Create Boid objects for every cone
 for object in bpy.data.objects:
     b = Boid(parent=object)
     boids.append(b)
     b.render()
 
+# Links the simulation with Blender's animation
 register()    
