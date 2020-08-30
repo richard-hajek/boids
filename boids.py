@@ -23,16 +23,16 @@ STARTING_DISPERSION = 200       # The size of the spawn field
 
 ENABLE_INTERACTIVITY = True     # Whether the boids should interact with one another
 
-NEIGHBOURS_CACHE_LIFE = 10      #
+NEIGHBOURS_CACHE_LIFE = 10      # We update the neighbors every x frames
 
-FIELD_OF_VIEW = 360             # The field of view of our boids, in degrees (0-360)
+FIELD_OF_VIEW = 270             # The field of view of our boids, in degrees (0-360)
 
 DEBUG = False
 
 
 def angle_between(v1, v2):
     """
-    Computes the angle between two vectors.
+    Computes the angle between two vectors (not oriented).
     """
     if not np.any(v1) or not np.any(v2):
         return 0
@@ -40,6 +40,20 @@ def angle_between(v1, v2):
     v1_u = normalize(v1)
     v2_u = normalize(v2)
     return np.arccos(np.dot(v1_u, v2_u))
+
+
+def oriented_angle_between(v1, v2):
+    """
+    Computes the oriented angle between two vectors.
+    """
+    if not np.any(v1) or not np.any(v2):
+        return 0
+        
+    v1_u = normalize(v1)
+    v2_u = normalize(v2)
+    
+    sign = np.array(np.sign(np.cross(v1_u, v2_u)))
+    return np.arccos(np.dot(v1_u, v2_u))*sign
 
 
 def normalize(v):
@@ -85,7 +99,8 @@ class Boid:
         self.position = np.random.random(DIMENSIONS) * STARTING_DISPERSION * 2 - STARTING_DISPERSION
         self.acceleration = np.zeros(DIMENSIONS)
         self.r = 2
-        angle = np.random.randint(45) * 8
+        angle = np.random.random() * 2* np.pi
+        print(angle*180/np.pi)
         self.velocity = np.array([np.cos(angle), np.sin(angle)])
         self.velocity = [*self.velocity, *np.zeros(DIMENSIONS - len(self.velocity))] # append missing dimensions if anny
         self.neighboursLife = NEIGHBOURS_CACHE_LIFE
@@ -219,7 +234,7 @@ class Boid:
     
     def render(self):
         self.parent.location = self.position[0], self.position[1], 0
-        self.parent.rotation_euler[2] = angle_between(self.velocity,  [1, 0])
+        self.parent.rotation_euler[2] = oriented_angle_between([1, 0], self.velocity)
 
 
 
