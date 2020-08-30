@@ -23,6 +23,8 @@ STARTING_DISPERSION = 200
 
 ENABLE_INTERACTIVITY = True
 
+NEIGHBOURS_CACHE_LIFE = 10
+
 DEBUG = False
 
 def unit_vector(vector):
@@ -60,6 +62,8 @@ class Boid:
         angle = np.random.randint(45) * 8
         self.velocity = np.array([np.cos(angle), np.sin(angle)])
         self.velocity = [*self.velocity, *np.zeros(DIMENSIONS - len(self.velocity))] # append missing dimensions if anny
+        self.neighboursLife = NEIGHBOURS_CACHE_LIFE
+        self.neighbours = []
         
     
     def tick(self, boids):
@@ -75,7 +79,7 @@ class Boid:
         self.render()
     
     
-    def neighbours(self, boids):
+    def find_around(self, boids):
         for b in boids:
             d = np.linalg.norm(b.position - self.position)
             if d > 0 and d < NEIGHBOUR_DIST:
@@ -84,11 +88,15 @@ class Boid:
     
     def flock(self, boids):
         
-        neighbours = list(self.neighbours(boids))
+        self.neighboursLife -= 1
+        if self.neighboursLife <= 0:
+            self.neighbours = list(self.find_around(boids))
+            self.neighboursLife = NEIGHBOURS_CACHE_LIFE
         
-        sep = self.separate(neighbours)
-        ali = self.align(neighbours)
-        coh = self.cohesion(neighbours)
+        
+        sep = self.separate(self.neighbours)
+        ali = self.align(self.neighbours)
+        coh = self.cohesion(self.neighbours)
         
         sep *= W_SEP
         ali *= W_ALI
