@@ -206,7 +206,9 @@ bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete() 
 
 for i in range(BOIDS):  
-    bpy.ops.mesh.primitive_cube_add(size=2, enter_editmode=False, align='WORLD', location=(0, 0, 0))
+    #bpy.ops.mesh.primitive_cube_add(size=2, enter_editmode=False, align='WORLD', location=(0, 0, 0))
+    bpy.ops.mesh.primitive_cone_add(location=(0.0,0.0,0.0), enter_editmode=False, align='WORLD', radius1=3, depth=12, radius2=0.1, rotation=(0,3.1415/2,0))
+
 
 for object in bpy.data.objects:
     b = Boid(parent=object)
