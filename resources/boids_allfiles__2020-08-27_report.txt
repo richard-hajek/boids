@@ -1,0 +1,27 @@
+Collect Files Operation Report
+
+
+Operation starts : 2020-08-27 22:19:18.359999
+
+
+Sequencer Strips :
+
+
+Images :
+
+    IMAGE IGNORED : Render Result is not an external file
+
+Movie Clips :
+
+
+Blend Libraries :
+
+
+Fonts :
+
+
+
+
+
+
+Operation ends : 2020-08-27 22:19:18.359999
