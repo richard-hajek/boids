@@ -11,11 +11,11 @@ MAX_FORCE = 0.1  # Maximum forces our boids can experience
 
 BORDER = 200  # Size of the simulation field
 
-W_SEP = 1.5  # The separation coefficient
+W_SEP = 2  # The separation coefficient
 W_ALI = 1.1  # The alignment coefficient
 W_COH = 1  # The cohesion coefficient
 
-DESIRED_SEP = 25  # The desired distance between the boids
+DESIRED_SEP = 30  # The desired distance between the boids
 
 NEIGHBOUR_DIST = 50  # The maximum distance for finding neighbors
 NEIGHBOUR_CACHE_LIFE = 10  # We update the neighbors every x frames
@@ -260,17 +260,34 @@ def reload():
 
 
 # Remove all objects from scene
+
 bpy.ops.object.select_all(action='SELECT')
+bpy.data.objects['template'].select_set(False)
 bpy.ops.object.delete()
 
+
+def move_to_collection(old_collection, new_collection, object):
+    new_collection.objects.link(object)
+    old_collection.objects.unlink(object)
+    
+
 for i in range(BOIDS):
-    # Create a conical object to visualize our Boid
-    # bpy.ops.mesh.primitive_cube_add(size=2, enter_editmode=False, align='WORLD', location=(0, 0, 0))
-    bpy.ops.mesh.primitive_cone_add(location=(0.0, 0.0, 0.0), enter_editmode=False, align='WORLD', radius1=3, depth=12,
-                                    radius2=0.1, rotation=(0, 3.1415 / 2, 0))
+    bpy.ops.object.select_all(action='DESELECT')
+    bpy.data.objects['template'].select_set(True)
+    bpy.ops.object.duplicate()
+    bpy.data.objects['template'].select_set(False)
+    move_to_collection(bpy.context.scene.collection, bpy.data.collections['boids'], bpy.context.selected_objects[0])
+    
+
 
 # Create Boid objects for every cone
 for object in bpy.data.objects:
+    
+    if object.name == 'template':
+        continue
+    
+    object.name = 'boid'
+    
     b = Boid(parent=object)
     boids.append(b)
     b.render()
